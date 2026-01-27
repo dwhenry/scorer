@@ -2,6 +2,8 @@
 
 Ruby implementation of a scoring system for the Doomlings card game.
 
+**189 cards converted** from TypeScript | 14 tests passing ✅
+
 ## Usage
 
 ```ruby
@@ -34,6 +36,24 @@ ruby lib/doomlings/example.rb
 # Tests (14 tests, all passing)
 bin/rails test test/lib/doomlings/scorer_test.rb
 ```
+
+## Card Files
+
+- `a_cards.rb` - ACROBATIC to AUTOMIMICRY (8 cards)
+- `b_cards.rb` - BAD to BULLHEADED (13 cards)
+- `c_cards.rb` - CAMOUFLAGE to CYBERNETIC (14 cards)
+- `d_cards.rb` - DEEP ROOTS to DREAMER (9 cards)
+- `e_cards.rb` - ECHOLOCATION to ENLIGHTENMENT (13 cards)
+- `f_cards.rb` - FAITH to FULFILLED (14 cards)
+- `g_cards.rb` - GALACTIC DRIFT to GREY HAT (8 cards)
+- `h_cards.rb` - HAND-WING to HYPER-MYELINATION (8 cards)
+- `i_cards.rb` - ICY to IRIDESCENT SCALES (7 cards)
+- `j_k_cards.rb` - JUICY to KIDNEY (8 cards)
+- `l_m_n_o_cards.rb` - LATE to OZMORIAN WINDS (26 cards)
+- `p_q_r_cards.rb` - PACK BEHAVIOR to RUGGEDIZED (26 cards)
+- `s_t_v_w_z_cards.rb` - SALIVA to ZOMBIFIED (49 cards)
+- `catastrophe_cards.rb` - AI TAKEOVER, BIOENGINEERED PLAGUE (2 cards)
+- `effect_cards.rb` - Helper for BOREDOM card
 
 ## Adding Cards
 
