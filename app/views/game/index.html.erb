@@ -1,4 +1,10 @@
 <div class="game-container" data-controller="game-scorer">
+  <!-- Card Zoom Preview -->
+  <div class="card-zoom" data-game-scorer-target="cardZoom">
+    <img src="" alt="" data-game-scorer-target="cardZoomImage">
+    <div class="card-zoom-name" data-game-scorer-target="cardZoomName"></div>
+  </div>
+
   <header class="game-header">
     <h1>🎮 Doomlings Scorer</h1>
 
@@ -36,11 +42,10 @@
       <% @catastrophe_cards.each do |card| %>
         <div class="card catastrophe-card"
              data-card-name="<%= card[:name] %>"
-             data-action="click->game-scorer#toggleCatastrophe">
+             data-action="click->game-scorer#toggleCatastrophe mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
           <%= image_tag "cards/#{card[:name]}.small.png",
                         alt: card[:name],
                         onerror: "this.src='/assets/card-placeholder.png'" %>
-          <div class="card-name"><%= card[:name] %></div>
         </div>
       <% end %>
     </div>
@@ -66,11 +71,10 @@
                      data-card-pack="<%= card[:pack] %>"
                      data-card-types="<%= card[:type].join(',') %>"
                      draggable="true"
-                     data-action="dragstart->game-scorer#dragStart">
+                     data-action="dragstart->game-scorer#dragStart mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
                   <%= image_tag "cards/#{card[:name]}.small.png",
                                 alt: card[:name],
                                 onerror: "this.src='/assets/card-placeholder.png'" %>
-                  <div class="card-name"><%= card[:name] %></div>
                 </div>
               <% end %>
             <% end %>

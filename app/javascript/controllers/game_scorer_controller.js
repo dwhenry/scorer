@@ -1,12 +1,29 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["packFilter", "playerCount", "playersContainer", "catastropheContainer"]
+  static targets = ["packFilter", "playerCount", "playersContainer", "catastropheContainer", "cardZoom", "cardZoomImage", "cardZoomName"]
 
   connect() {
     this.players = []
     this.selectedCatastrophes = []
     this.updatePlayerCount()
+  }
+
+  showZoom(event) {
+    const cardName = event.currentTarget.dataset.cardName
+    if (!cardName) return
+
+    // Update zoom preview
+    this.cardZoomImageTarget.src = `/assets/cards/${cardName}.small.png`
+    this.cardZoomImageTarget.alt = cardName
+    this.cardZoomNameTarget.textContent = cardName
+
+    // Show zoom
+    this.cardZoomTarget.classList.add('active')
+  }
+
+  hideZoom(event) {
+    this.cardZoomTarget.classList.remove('active')
   }
 
   updatePlayerCount() {
@@ -129,11 +146,13 @@ export default class extends Controller {
     }
 
     handElement.innerHTML = player.cards.map((card, index) => `
-      <div class="card player-card" data-card-index="${index}">
+      <div class="card player-card"
+           data-card-index="${index}"
+           data-card-name="${card.name}"
+           data-action="mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
         <img src="/assets/cards/${card.name}.small.png"
              alt="${card.name}"
              onerror="this.src='/assets/card-placeholder.png'">
-        <div class="card-name">${card.name}</div>
         <div class="card-score" data-card-score="${index}">-</div>
         <button class="remove-card"
                 data-action="click->game-scorer#removeCard"
