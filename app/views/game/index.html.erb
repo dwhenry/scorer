@@ -1,0 +1,82 @@
+<div class="game-container" data-controller="game-scorer">
+  <header class="game-header">
+    <h1>🎮 Doomlings Scorer</h1>
+
+    <!-- Pack Filter -->
+    <div class="pack-filter">
+      <label>Select Packs:</label>
+      <% @packs.each do |pack| %>
+        <label class="pack-checkbox">
+          <input type="checkbox"
+                 data-game-scorer-target="packFilter"
+                 data-action="change->game-scorer#filterByPack"
+                 value="<%= pack %>"
+                 <%= 'checked' if pack == 'Classic' %>>
+          <%= pack %>
+        </label>
+      <% end %>
+    </div>
+
+    <!-- Player Count -->
+    <div class="player-count">
+      <label>Number of Players:</label>
+      <select data-game-scorer-target="playerCount"
+              data-action="change->game-scorer#updatePlayerCount">
+        <option value="2" selected>2 Players</option>
+        <option value="3">3 Players</option>
+        <option value="4">4 Players</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- Catastrophe Cards -->
+  <section class="catastrophe-section">
+    <h2>💥 Catastrophe Cards</h2>
+    <div class="catastrophe-cards" data-game-scorer-target="catastropheContainer">
+      <% @catastrophe_cards.each do |card| %>
+        <div class="card catastrophe-card"
+             data-card-name="<%= card[:name] %>"
+             data-action="click->game-scorer#toggleCatastrophe">
+          <%= image_tag "cards/#{card[:name]}.small.png",
+                        alt: card[:name],
+                        onerror: "this.src='/assets/card-placeholder.png'" %>
+          <div class="card-name"><%= card[:name] %></div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- Players Section -->
+  <section class="players-section" data-game-scorer-target="playersContainer">
+    <!-- Players will be dynamically generated -->
+  </section>
+
+  <!-- Pack Display -->
+  <section class="pack-display">
+    <h2>📦 Card Pack</h2>
+    <% @colors.each do |color| %>
+      <% if @cards[color] %>
+        <div class="color-group" data-color="<%= color %>">
+          <h3 class="color-header <%= color %>"><%= color.to_s.titleize %></h3>
+          <div class="cards-grid">
+            <% @cards[color].each do |pack, cards| %>
+              <% cards.each do |card| %>
+                <div class="card pack-card"
+                     data-card-name="<%= card[:name] %>"
+                     data-card-pack="<%= card[:pack] %>"
+                     data-card-types="<%= card[:type].join(',') %>"
+                     draggable="true"
+                     data-action="dragstart->game-scorer#dragStart">
+                  <%= image_tag "cards/#{card[:name]}.small.png",
+                                alt: card[:name],
+                                onerror: "this.src='/assets/card-placeholder.png'" %>
+                  <div class="card-name"><%= card[:name] %></div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+</div>
