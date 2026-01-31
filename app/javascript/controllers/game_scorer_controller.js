@@ -127,9 +127,10 @@ export default class extends Controller {
     const div = document.createElement('div')
     div.className = 'player'
     div.dataset.playerId = player.id
+    div.dataset.action="click->game-scorer#selectPlayer"
 
     div.innerHTML = `
-      <div class="player-header" data-action="click->game-scorer#selectPlayer" data-player-id="${player.id}">
+      <div class="player-header">
         <h3>${player.name}</h3>
         <div class="player-score">
           <span class="total-score">0</span> points

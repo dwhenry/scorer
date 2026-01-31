@@ -180,12 +180,6 @@
   cursor: pointer;
 }
 
-.player.selected .player-header::before {
-  content: "✓ ";
-  color: #2196f3;
-  font-weight: bold;
-}
-
 .player-header {
   display: flex;
   flex-direction: column;
