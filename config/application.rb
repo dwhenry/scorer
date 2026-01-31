@@ -30,6 +30,9 @@ module Scorer
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # Ignore card definition files from Zeitwerk (they don't follow naming conventions)
+    Rails.autoloaders.main.ignore(Rails.root.join("app/lib/doomlings/cards"))
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
