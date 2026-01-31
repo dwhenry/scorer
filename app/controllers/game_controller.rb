@@ -2,6 +2,7 @@
 # require 'doomlings/doomlings'
 
 class GameController < ApplicationController
+  before_action :load_cards, only: [:index, :calculate_score]
   skip_before_action :verify_authenticity_token, only: [:calculate_score]
 
   def index
@@ -15,10 +16,10 @@ class GameController < ApplicationController
   def calculate_score
     players_cards = params[:players] || []
     catastrophe_names = params[:catastrophes] || []
-
     begin
+
       # Initialize scorer with players
-      scorer = Doomlings::Scorer.new(players_cards.map { |cards| convert_cards(cards) })
+      scorer = Doomlings::Scorer.new(*players_cards.map { |cards| convert_cards(cards) })
 
       # Add catastrophe cards
       catastrophe_names.each do |cat_name|
@@ -26,7 +27,7 @@ class GameController < ApplicationController
       end
 
       # Calculate scores
-      game_score = scorer.calc
+      game_score = scorer.scores
 
       # Format response
       response_data = {
@@ -47,11 +48,23 @@ class GameController < ApplicationController
 
       render json: response_data
     rescue StandardError => e
+      Rails.logger.warn "error: #{e.message}"
+      Rails.logger.warn e.backtrace.join("\n")
       render json: { error: e.message }, status: :unprocessable_entity
     end
   end
 
   private
+
+  def load_cards
+    # needed in dev as otherwise auto reload of app clears the cards
+    if Rails.env.development? && Doomlings::CardContainer.all_cards.none?
+      Rails.logger.warn "Loading cards"
+      Dir[Rails.root.join('app/lib/doomlings/cards/*.rb')].sort.each do |file|
+        load file
+      end
+    end
+  end
 
   def load_all_cards
     # Group cards by color and pack

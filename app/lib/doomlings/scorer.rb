@@ -50,7 +50,7 @@ module Doomlings
         card_scores = player_cards.map do |c|
           final_a = c.final_a
           final_b = c.final_b || 0
-          CardScore.new(final_a: final_a, final_b: final_b, total: final_a + final_b)
+          CardScore.new(name: c.card.name, final_a: final_a, final_b: final_b, total: final_a + final_b)
         end
         PlayerScore.new(card_scores)
       end
@@ -68,39 +68,40 @@ module Doomlings
   end
 
   class GameScore
-    attr_reader :winning_player_indices, :player_scores
+    attr_reader :winning_player_indices, :players
 
-    def initialize(winning_player_indices, player_scores)
+    def initialize(winning_player_indices, players)
       @winning_player_indices = winning_player_indices
-      @player_scores = player_scores
+      @players = players
     end
 
     def get_player_score(player_index)
-      raise "Player of index #{player_index} not found" if player_index >= player_scores.length
+      raise "Player of index #{player_index} not found" if player_index >= players.length
 
-      player_scores[player_index]
+      players[player_index]
     end
   end
 
   class PlayerScore
-    attr_reader :total, :card_scores
+    attr_reader :total, :cards
 
-    def initialize(card_scores)
-      @card_scores = card_scores
-      @total = card_scores.sum(&:total)
+    def initialize(cards)
+      @cards = cards
+      @total = cards.sum(&:total)
     end
 
     def get_card_score_by_index(card_index)
-      raise "No card exists at index #{card_index}" if card_index >= card_scores.length
+      raise "No card exists at index #{card_index}" if card_index >= cards.length
 
-      card_scores[card_index]
+      cards[card_index]
     end
   end
 
   class CardScore
-    attr_reader :total, :final_a, :final_b, :final_c
+    attr_reader :name,:total, :final_a, :final_b, :final_c
 
-    def initialize(total:, final_a:, final_b: nil, final_c: nil)
+    def initialize(name:, total:, final_a:, final_b: nil, final_c: nil)
+      @name = name
       @total = total
       @final_a = final_a
       @final_b = final_b

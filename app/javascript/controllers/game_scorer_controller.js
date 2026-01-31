@@ -301,15 +301,13 @@ export default class extends Controller {
         <div class="card player-card"
              data-card-indices="${group.indices.join(',')}"
              data-card-name="${group.name}"
-             data-action="mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
+             data-player-id="${playerId}"
+             data-action="mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom click->game-scorer#removeCard:stop">
           <img src="${imgSrc}"
                alt="${group.name}">
           ${group.count > 1 ? `<div class="card-count">${group.count}</div>` : ''}
           <div class="card-score" data-card-score="${firstIndex}">-</div>
-          <button class="remove-card"
-                  data-action="click->game-scorer#removeCard"
-                  data-player-id="${playerId}"
-                  data-card-name="${group.name}">×</button>
+          <button class="remove-card">×</button>
         </div>
       `
     }).join('')
