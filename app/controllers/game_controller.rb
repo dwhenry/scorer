@@ -6,6 +6,7 @@ class GameController < ApplicationController
 
   def index
     @packs = Doomlings::PACK_TYPES
+    @default_packs = Doomlings::PACK_TYPES[0..0]
     @colors = Doomlings::TRAIT_CARD_TYPES
     @cards = load_all_cards
     @catastrophe_cards = load_catastrophe_cards

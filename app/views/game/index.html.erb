@@ -21,7 +21,8 @@
           <label>Select Packs:</label>
           <%= select_tag "packs",
           options_for_select(@packs, 'Classic'),
-          multiple: true, data: { game_scorer_target: 'packFilter', action: "change->game-scorer#filterByPack" } %>
+          multiple: true, data: { game_scorer_target: 'packFilter', action: "change->game-scorer#filterByPack" },
+          class: "multiselect" %>
         </div>
 
         <!-- Player Count -->
