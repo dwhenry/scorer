@@ -9,7 +9,7 @@
 - ✅ Support for player cards and catastrophe cards
 - ✅ Metadata handling for complex cards
 
-**Location**: `/lib/doomlings/`
+**Location**: `/app/lib/doomlings/`
 
 ### 2. Interactive Web UI
 - ✅ Pack selection (filter which card packs to display)

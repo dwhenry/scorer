@@ -1,20 +1,92 @@
 import { Controller } from "@hotwired/stimulus"
-
 export default class extends Controller {
-  static targets = ["packFilter", "playerCount", "playersContainer", "catastropheContainer", "cardZoom", "cardZoomImage", "cardZoomName"]
+  static targets = ["packFilter", "playerCount", "playersContainer", "catastropheContainer", "cardZoom", "cardZoomImage", "cardZoomName", "headerControls", "configToggle", "selectionHint"]
 
   connect() {
     this.players = []
     this.selectedCatastrophes = []
+    this.selectedPlayerId = null
+    this.images = {
+      small: {},
+      large: {}
+    }
+
+    // Build image lookup from rendered cards
+    this.buildImageLookup()
+
     this.updatePlayerCount()
+    this.adjustHeaderPadding()
+
+    // Adjust padding on window resize
+    window.addEventListener('resize', () => this.adjustHeaderPadding())
+  }
+
+  buildImageLookup() {
+    // Scan all pack cards to build image URL lookup
+    document.querySelectorAll('.pack-card').forEach(cardElement => {
+      const cardName = cardElement.dataset.cardName
+      const imgElement = cardElement.querySelector('img.small-card')
+      const largeImgElement = cardElement.querySelector('img.large-card')
+
+      if (cardName && imgElement && imgElement.src) {
+        // Store small image URL
+        this.images.small[cardName] = imgElement.src
+
+        // Generate large image URL by replacing .small.png with .png
+        this.images.large[cardName] = largeImgElement.src
+      }
+    })
+
+    // Also scan catastrophe cards
+    document.querySelectorAll('.catastrophe-card').forEach(cardElement => {
+      const cardName = cardElement.dataset.cardName
+      const imgElement = cardElement.querySelector('img')
+
+      if (cardName && imgElement && imgElement.src) {
+        this.images.small[cardName] = imgElement.src
+        this.images.large[cardName] = imgElement.src.replace('.small.png', '.png')
+      }
+    })
+
+    console.log(`Loaded ${Object.keys(this.images.small).length} card images`)
+  }
+
+  adjustHeaderPadding() {
+    const header = document.querySelector('.game-header')
+    const container = document.querySelector('.game-container')
+
+    if (header && container) {
+      // Wait for layout to settle
+      setTimeout(() => {
+        const headerHeight = header.offsetHeight
+        container.style.paddingTop = `${headerHeight + 20}px`
+      }, 100)
+    }
+  }
+
+  toggleConfig() {
+    this.headerControlsTarget.classList.toggle('show')
+
+    // Update button text
+    if (this.headerControlsTarget.classList.contains('show')) {
+      this.configToggleTarget.textContent = '✕'
+    } else {
+      this.configToggleTarget.textContent = '⚙️'
+    }
+
+    // Adjust padding after toggle
+    this.adjustHeaderPadding()
   }
 
   showZoom(event) {
     const cardName = event.currentTarget.dataset.cardName
     if (!cardName) return
 
+    // Get large image from lookup
+    const zoomSrc = this.images.large[cardName] || `/assets/cards/${cardName}.png`
+
     // Update zoom preview
-    this.cardZoomImageTarget.src = `/assets/cards/${cardName}.small.png`
+    this.cardZoomImageTarget.src = zoomSrc
     this.cardZoomImageTarget.alt = cardName
     this.cardZoomNameTarget.textContent = cardName
 
@@ -46,6 +118,9 @@ export default class extends Controller {
       const playerElement = this.createPlayerElement(player)
       this.playersContainerTarget.appendChild(playerElement)
     }
+
+    // Adjust padding after players are created
+    this.adjustHeaderPadding()
   }
 
   createPlayerElement(player) {
@@ -54,7 +129,7 @@ export default class extends Controller {
     div.dataset.playerId = player.id
 
     div.innerHTML = `
-      <div class="player-header">
+      <div class="player-header" data-action="click->game-scorer#selectPlayer" data-player-id="${player.id}">
         <h3>${player.name}</h3>
         <div class="player-score">
           <span class="total-score">0</span> points
@@ -63,32 +138,77 @@ export default class extends Controller {
       <div class="player-hand"
            data-player-id="${player.id}"
            data-action="dragover->game-scorer#dragOver drop->game-scorer#drop">
-        <div class="drop-zone">Drop cards here</div>
+        <div class="drop-zone">Drop cards here or click to select player</div>
       </div>
     `
 
     return div
   }
 
-  filterByPack() {
-    const selectedPacks = Array.from(this.packFilterTargets)
-      .filter(checkbox => checkbox.checked)
-      .map(checkbox => checkbox.value)
+  selectPlayer(event) {
+    const playerId = parseInt(event.currentTarget.dataset.playerId)
 
+    // Toggle selection
+    if (this.selectedPlayerId === playerId) {
+      this.selectedPlayerId = null
+    } else {
+      this.selectedPlayerId = playerId
+    }
+
+    // Update visual state
+    this.updatePlayerSelection()
+  }
+
+  updatePlayerSelection() {
+    document.querySelectorAll('.player').forEach(playerElement => {
+      const playerId = parseInt(playerElement.dataset.playerId)
+      if (playerId === this.selectedPlayerId) {
+        playerElement.classList.add('selected')
+      } else {
+        playerElement.classList.remove('selected')
+      }
+    })
+
+    // Update pack display to show clickable state
+    const packDisplay = document.querySelector('.pack-display')
+    if (this.selectedPlayerId !== null) {
+      packDisplay?.classList.add('player-selected')
+      const playerName = this.players[this.selectedPlayerId]?.name || `Player ${this.selectedPlayerId + 1}`
+      this.selectionHintTarget.textContent = `👆 Click on cards below to add them to ${playerName}`
+      this.selectionHintTarget.style.display = 'block'
+    } else {
+      packDisplay?.classList.remove('player-selected')
+      this.selectionHintTarget.style.display = 'none'
+    }
+  }
+
+  filterByPack() {
+    console.log('here')
+    const selectedPacks = Array.from(this.packFilterTarget.options)
+      .filter(option => option.selected)
+      .map(option => option.value)
     // Show/hide cards based on selected packs
     document.querySelectorAll('.pack-card').forEach(card => {
       const cardPack = card.dataset.cardPack
       if (selectedPacks.includes(cardPack)) {
-        card.style.display = 'block'
+        card.classList.remove('card-hidden')
+        card.classList.add('card-visible')
       } else {
-        card.style.display = 'none'
+        card.classList.remove('card-visible')
+        card.classList.add('card-hidden')
       }
     })
 
     // Show/hide color groups if they have no visible cards
     document.querySelectorAll('.color-group').forEach(group => {
-      const visibleCards = group.querySelectorAll('.pack-card[style="display: block"]')
-      group.style.display = visibleCards.length > 0 ? 'block' : 'none'
+      const visibleCards = group.querySelectorAll('.pack-card.card-visible')
+      if (visibleCards.length > 0) {
+        group.classList.remove('card-hidden')
+        group.classList.add('card-visible')
+      } else {
+        group.classList.remove('card-visible')
+        group.classList.add('card-hidden')
+      }
     })
   }
 
@@ -105,6 +225,17 @@ export default class extends Controller {
     }
 
     this.calculateAllScores()
+  }
+
+  clickCard(event) {
+    // Only add to player if one is selected
+    if (this.selectedPlayerId === null) {
+      return
+    }
+
+    const cardName = event.currentTarget.dataset.cardName
+    this.addCardToPlayer(this.selectedPlayerId, cardName)
+    this.calculateScore(this.selectedPlayerId)
   }
 
   dragStart(event) {
@@ -141,34 +272,64 @@ export default class extends Controller {
     const player = this.players[playerId]
 
     if (player.cards.length === 0) {
-      handElement.innerHTML = '<div class="drop-zone">Drop cards here</div>'
+      handElement.innerHTML = '<div class="drop-zone">Drop cards here or click to select player</div>'
+      this.adjustHeaderPadding()
       return
     }
 
-    handElement.innerHTML = player.cards.map((card, index) => `
-      <div class="card player-card"
-           data-card-index="${index}"
-           data-card-name="${card.name}"
-           data-action="mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
-        <img src="/assets/cards/${card.name}.small.png"
-             alt="${card.name}"
-             onerror="this.src='/assets/card-placeholder.png'">
-        <div class="card-score" data-card-score="${index}">-</div>
-        <button class="remove-card"
-                data-action="click->game-scorer#removeCard"
-                data-player-id="${playerId}"
-                data-card-index="${index}">×</button>
-      </div>
-    `).join('')
+    // Group cards by name
+    const cardGroups = {}
+    player.cards.forEach((card, index) => {
+      if (!cardGroups[card.name]) {
+        cardGroups[card.name] = {
+          name: card.name,
+          indices: [],
+          count: 0
+        }
+      }
+      cardGroups[card.name].indices.push(index)
+      cardGroups[card.name].count++
+    })
+
+    // Render grouped cards
+    handElement.innerHTML = Object.values(cardGroups).map(group => {
+      const imgSrc = this.images.small[group.name] || `/assets/cards/${group.name}.small.png`
+      const firstIndex = group.indices[0]
+
+      return `
+        <div class="card player-card"
+             data-card-indices="${group.indices.join(',')}"
+             data-card-name="${group.name}"
+             data-action="mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
+          <img src="${imgSrc}"
+               alt="${group.name}">
+          ${group.count > 1 ? `<div class="card-count">${group.count}</div>` : ''}
+          <div class="card-score" data-card-score="${firstIndex}">-</div>
+          <button class="remove-card"
+                  data-action="click->game-scorer#removeCard"
+                  data-player-id="${playerId}"
+                  data-card-name="${group.name}">×</button>
+        </div>
+      `
+    }).join('')
+
+    // Adjust padding after cards are rendered
+    this.adjustHeaderPadding()
   }
 
   removeCard(event) {
     const playerId = parseInt(event.currentTarget.dataset.playerId)
-    const cardIndex = parseInt(event.currentTarget.dataset.cardIndex)
+    const cardName = event.currentTarget.dataset.cardName
 
-    this.players[playerId].cards.splice(cardIndex, 1)
-    this.renderPlayerHand(playerId)
-    this.calculateScore(playerId)
+    // Find and remove one instance of this card
+    const player = this.players[playerId]
+    const cardIndex = player.cards.findIndex(card => card.name === cardName)
+
+    if (cardIndex !== -1) {
+      player.cards.splice(cardIndex, 1)
+      this.renderPlayerHand(playerId)
+      this.calculateScore(playerId)
+    }
   }
 
   async calculateScore(playerId) {
@@ -202,20 +363,52 @@ export default class extends Controller {
   }
 
   updateScoreDisplay(scoreData) {
-    scoreData.players.forEach((playerScore, index) => {
-      const playerElement = document.querySelector(`[data-player-id="${index}"]`)
+    scoreData.players.forEach((playerScore, playerIndex) => {
+      const playerElement = document.querySelector(`[data-player-id="${playerIndex}"]`)
       if (!playerElement) return
 
       // Update total score
       const totalScoreElement = playerElement.querySelector('.total-score')
       totalScoreElement.textContent = playerScore.total
 
-      // Update individual card scores
+      // Group scores by card name to sum up duplicates
+      const player = this.players[playerIndex]
+      const scoresByCardName = {}
+
       playerScore.cards.forEach((cardScore, cardIndex) => {
-        const cardScoreElement = playerElement.querySelector(`[data-card-score="${cardIndex}"]`)
-        if (cardScoreElement) {
-          cardScoreElement.textContent = `${cardScore.total} pts`
-          cardScoreElement.title = `Base: ${cardScore.finalA}, Bonus: ${cardScore.finalB || 0}`
+        const cardName = player.cards[cardIndex]?.name
+        if (!cardName) return
+
+        if (!scoresByCardName[cardName]) {
+          scoresByCardName[cardName] = {
+            total: 0,
+            count: 0,
+            baseScores: [],
+            bonusScores: []
+          }
+        }
+
+        scoresByCardName[cardName].total += cardScore.total
+        scoresByCardName[cardName].count++
+        scoresByCardName[cardName].baseScores.push(cardScore.finalA)
+        scoresByCardName[cardName].bonusScores.push(cardScore.finalB || 0)
+      })
+
+      // Update card score displays
+      playerElement.querySelectorAll('.player-card').forEach(cardElement => {
+        const cardName = cardElement.dataset.cardName
+        const indices = cardElement.dataset.cardIndices.split(',').map(i => parseInt(i))
+        const firstIndex = indices[0]
+
+        const cardScoreElement = cardElement.querySelector(`[data-card-score="${firstIndex}"]`)
+        if (cardScoreElement && scoresByCardName[cardName]) {
+          const groupScore = scoresByCardName[cardName]
+          cardScoreElement.textContent = `${groupScore.total} pts`
+
+          // Build detailed tooltip
+          const avgBase = (groupScore.baseScores.reduce((a, b) => a + b, 0) / groupScore.count).toFixed(1)
+          const avgBonus = (groupScore.bonusScores.reduce((a, b) => a + b, 0) / groupScore.count).toFixed(1)
+          cardScoreElement.title = `Total: ${groupScore.total} (${groupScore.count}x)\nAvg Base: ${avgBase}, Avg Bonus: ${avgBonus}`
         }
       })
     })

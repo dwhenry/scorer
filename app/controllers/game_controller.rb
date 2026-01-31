@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# require 'doomlings/doomlings'
 
 class GameController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:calculate_score]

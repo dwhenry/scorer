@@ -6,59 +6,64 @@
   </div>
 
   <header class="game-header">
-    <h1>🎮 Doomlings Scorer</h1>
+    <div class="header-top">
+      <h1>🎮 Doomlings Scorer</h1>
 
-    <!-- Pack Filter -->
-    <div class="pack-filter">
-      <label>Select Packs:</label>
-      <% @packs.each do |pack| %>
-        <label class="pack-checkbox">
-          <input type="checkbox"
-                 data-game-scorer-target="packFilter"
-                 data-action="change->game-scorer#filterByPack"
-                 value="<%= pack %>"
-                 <%= 'checked' if pack == 'Classic' %>>
-          <%= pack %>
-        </label>
-      <% end %>
+      <button class="config-toggle"
+              data-game-scorer-target="configToggle"
+              data-action="click->game-scorer#toggleConfig">
+        ⚙️
+      </button>
+
+      <div class="header-controls" data-game-scorer-target="headerControls">
+        <!-- Pack Filter -->
+        <div class="pack-filter">
+          <label>Select Packs:</label>
+          <%= select_tag "packs",
+          options_for_select(@packs, 'Classic'),
+          multiple: true, data: { game_scorer_target: 'packFilter', action: "change->game-scorer#filterByPack" } %>
+        </div>
+
+        <!-- Player Count -->
+        <div class="player-count">
+          <label>Number of Players:</label>
+          <select data-game-scorer-target="playerCount"
+                  data-action="change->game-scorer#updatePlayerCount">
+            <option value="2" selected>2 Players</option>
+            <option value="3">3 Players</option>
+            <option value="4">4 Players</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <!-- Player Count -->
-    <div class="player-count">
-      <label>Number of Players:</label>
-      <select data-game-scorer-target="playerCount"
-              data-action="change->game-scorer#updatePlayerCount">
-        <option value="2" selected>2 Players</option>
-        <option value="3">3 Players</option>
-        <option value="4">4 Players</option>
-      </select>
-    </div>
+    <!-- Players Section -->
+    <section class="players-section" data-game-scorer-target="playersContainer">
+      <!-- Players will be dynamically generated -->
+    </section>
   </header>
 
-  <!-- Catastrophe Cards -->
-  <section class="catastrophe-section">
-    <h2>💥 Catastrophe Cards</h2>
-    <div class="catastrophe-cards" data-game-scorer-target="catastropheContainer">
-      <% @catastrophe_cards.each do |card| %>
-        <div class="card catastrophe-card"
-             data-card-name="<%= card[:name] %>"
-             data-action="click->game-scorer#toggleCatastrophe mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
-          <%= image_tag "cards/#{card[:name]}.small.png",
-                        alt: card[:name],
-                        onerror: "this.src='/assets/card-placeholder.png'" %>
-        </div>
-      <% end %>
-    </div>
-  </section>
-
-  <!-- Players Section -->
-  <section class="players-section" data-game-scorer-target="playersContainer">
-    <!-- Players will be dynamically generated -->
-  </section>
 
   <!-- Pack Display -->
   <section class="pack-display">
+    <!-- Catastrophe Cards -->
+    <section class="catastrophe-section">
+      <h2>💥 Catastrophe Cards</h2>
+      <div class="catastrophe-cards" data-game-scorer-target="catastropheContainer">
+        <% @catastrophe_cards.each do |card| %>
+          <div class="card catastrophe-card"
+              data-card-name="<%= card[:name] %>"
+              data-action="click->game-scorer#toggleCatastrophe mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
+            <%= image_tag "cards/#{card[:name]}.small.png",
+                          alt: card[:name],
+                          onerror: "this.src='/assets/card-placeholder.png'" %>
+          </div>
+        <% end %>
+      </div>
+    </section>
     <h2>📦 Card Pack</h2>
+    <div class="player-selection-hint" data-game-scorer-target="selectionHint" style="display: none;">👆 Click on cards below to add them to the selected player</div>
+
     <% @colors.each do |color| %>
       <% if @cards[color] %>
         <div class="color-group" data-color="<%= color %>">
@@ -71,10 +76,16 @@
                      data-card-pack="<%= card[:pack] %>"
                      data-card-types="<%= card[:type].join(',') %>"
                      draggable="true"
-                     data-action="dragstart->game-scorer#dragStart mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
+                     data-action="dragstart->game-scorer#dragStart click->game-scorer#clickCard mouseenter->game-scorer#showZoom mouseleave->game-scorer#hideZoom">
                   <%= image_tag "cards/#{card[:name]}.small.png",
                                 alt: card[:name],
-                                onerror: "this.src='/assets/card-placeholder.png'" %>
+                                onerror: "this.src='/assets/card-placeholder.png'",
+                                class: 'small-card' %>
+                  <%= image_tag "cards/#{card[:name]}.png",
+                                alt: card[:name],
+                                onerror: "this.src='/assets/card-placeholder.png'",
+                                class: 'large-card',
+                                style: 'display: none;' %>
                 </div>
               <% end %>
             <% end %>
