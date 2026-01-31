@@ -20,7 +20,7 @@ game_score = scorer.scores
   player_score = game_score.get_player_score(player_index)
   puts "Player #{player_index + 1} Total: #{player_score.total}"
 
-  player_score.card_scores.each_with_index do |card, index|
+  player_score.cards.each_with_index do |card, index|
     puts "  Card #{index + 1}: #{card.total} pts (Base: #{card.final_a}, Bonus: #{card.final_b})"
   end
 end
@@ -60,7 +60,7 @@ game_score3 = scorer3.scores
   player_score = game_score3.get_player_score(player_index)
   puts "Player #{player_index + 1} Total: #{player_score.total}"
 
-  player_score.card_scores.each_with_index do |card, index|
+  player_score.cards.each_with_index do |card, index|
     puts "  Card #{index + 1}: #{card.total} pts (Base: #{card.final_a}, Bonus: #{card.final_b})"
   end
 end
@@ -81,7 +81,7 @@ game_score4 = scorer4.scores
 
 (0..1).each do |player_index|
   player_score = game_score4.get_player_score(player_index)
-  puts "Player #{player_index + 1} Total: #{player_score.total} (#{player_score.card_scores.length} cards remaining)"
+  puts "Player #{player_index + 1} Total: #{player_score.total} (#{player_score.cards.length} cards remaining)"
 end
 
 puts "Winner(s): Player #{game_score4.winning_player_indices.map { |i| i + 1 }.join(', ')}"
