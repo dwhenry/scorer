@@ -1,5 +1,4 @@
-# frozen_string_literal: true
-
+```ruby
 # Example usage of the Doomlings Scorer
 require_relative 'scorer'
 require_relative 'cards/a_cards'
@@ -85,3 +84,4 @@ game_score4 = scorer4.scores
 end
 
 puts "Winner(s): Player #{game_score4.winning_player_indices.map { |i| i + 1 }.join(', ')}"
+```
